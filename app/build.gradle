@@ -1,25 +1,56 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 24
+    buildToolsVersion '21.1.2'
+
 
     defaultConfig {
-        applicationId "com.wtf.myapplication"
-        minSdkVersion 15
-        targetSdkVersion 25
+        applicationId "com.example.myapplication"
+        minSdkVersion 14
+        targetSdkVersion 24
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
     }
+//    productFlavors {
+//        // Define separate dev and prod product flavors.
+//        dev {
+//            // dev utilizes minSDKVersion = 21 to allow the Android gradle plugin
+//            // to pre-dex each module and produce an APK that can be tested on
+//            // Android Lollipop without time consuming dex merging processes.
+//            minSdkVersion 21
+//        }
+//        prod {
+//            // The actual minSdkVersion for the application.
+//            minSdkVersion 14
+//        }
+//    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    afterEvaluate {
+        tasks.matching {
+            it.name.startsWith('dex')
+        }.each { dx ->
+            if (dx.additionalParameters == null) {
+                dx.additionalParameters = []
+            }
+            dx.additionalParameters += '--multi-dex'
+            // 设置multidex.keep文件中class为第一个dex文件中包含的class，如果没有下一项设置此项无作用
+            dx.additionalParameters += "--main-dex-list=$projectDir/multidex.keep".toString()
+            //此项添加后第一个classes.dex文件只能包含-main-dex-list列表中class
+            dx.additionalParameters += '--minimal-main-dex'
+        }
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:25.1.1'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:24.0.0'
+    compile'com.android.support:multidex:1.+'
 }
